@@ -1,0 +1,107 @@
+﻿@page "/EditRoom"
+
+@using Domain.domain
+@using Microsoft.AspNetCore.Components
+
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+@inject IJSRuntime js
+
+<h3>Все Аудитории с описанием</h3>
+
+@if (competitions.Count == 0)
+{
+    <p><em>Empty</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id Аудитории</th>
+                <th>Аулдитория</th>
+                <th>Описание</th>
+                <th>EdditButton</th>
+                <th>DeleteButton</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var competition in competitions)
+            {
+                <tr>
+                    <td>@competition.id</td>
+                    <td>@competition.name</td>
+                    <td>@competition.description</td>
+
+                    <td><a href="/competitionEdit/@competition.id" >Edit</a></td>
+                    <td><a @onclick="(() => deleteComeptition(competition.id))">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<br />
+<br />
+
+<h3>Create credit </h3>
+
+<div class="row">
+    <EditForm Model="@model" OnValidSubmit="@TypeRoom">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            id: <InputNumber id="balance" @bind-Value="model.id" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            name: <InputNumber id="name" @bind-Value="model.name" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            description: <InputNumber id="name" @bind-Value="model.description" class="form-control" />
+        </div>
+        <br />
+        <button type="submit" class="btn btn-success">Create</button>
+    </EditForm>
+</div>
+
+<br />
+<br />
+
+
+
+@code {
+
+
+  
+    private TypeRoom model = new TypeRoom();
+
+    private List<TypeRoom> competitions = new List<TypeRoom>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        competitions = await httpClient.GetFromJsonAsync<List<TypeRoom>>("/api/typeRoom");
+    }
+    public async Task deleteComeptition(int? id)
+    {
+        bool confirm = await js.InvokeAsync<bool>("confirm", "Do you want to delete this task?");
+        if (confirm)
+        {
+            var response = await httpClient.DeleteAsync($"/api/typeRoom/{id}");
+
+        }
+    }
+
+    public async System.Threading.Tasks.Task TypeRoom()
+    {
+      bool confirm = await js.InvokeAsync<bool>("confirm", "Do you want to create this createCredit?");
+       if (confirm)
+       {
+            var rs = await httpClient.PostAsJsonAsync($"/api/typeRoom", model);
+         
+        }
+        //model.id = stId;
+    }
+
+}
